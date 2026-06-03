@@ -662,17 +662,19 @@ function showProgSec(s,btn){
 // ============================================================
 function renderHistory(){
   const cont=document.getElementById('hist-list');
-  const all=[...history.map(h=>({...h,isRun:false})),...runHistory.map(r=>({...r,isRun:true}))];
+  const all=[...history.map((h,i)=>({...h,isRun:false,_i:i})),...runHistory.map((r,i)=>({...r,isRun:true,_i:i}))];
   all.sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!all.length){cont.innerHTML='<div class="empty-prog" style="margin-top:20px">Nog geen sessies gelogd</div>';return;}
   const cols=['var(--accent)','var(--pink)','var(--purple)'];const feels=['😵','😓','😐','😊','🔥'];
   cont.innerHTML=all.map(s=>{
     const d=new Date(s.date);const dateStr=d.toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
-    if(s.isRun){const pm=s.pace?Math.floor(s.pace):0;const ps=s.pace?Math.round((s.pace-pm)*60):0;return`<div class="hi-item"><div><div class="hi-day" style="color:var(--blue)">${s.typeName}</div><div class="hi-date">${dateStr}</div></div><div class="hi-badges">${s.dist?`<span class="hi-badge">${s.dist} km</span>`:''} ${s.pace?`<span class="hi-badge">${pm}:${ps.toString().padStart(2,'0')}/km</span>`:''} ${s.feeling>=0?`<span class="hi-badge">${feels[s.feeling]}</span>`:''}</div></div>`;}
+    const delBtn=`<button onclick="deleteSession(${s._i},${s.isRun})" style="background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:0 4px" title="Verwijder">🗑</button>`;
+    if(s.isRun){const pm=s.pace?Math.floor(s.pace):0;const ps=s.pace?Math.round((s.pace-pm)*60):0;return`<div class="hi-item"><div><div class="hi-day" style="color:var(--blue)">${s.typeName}</div><div class="hi-date">${dateStr}</div></div><div class="hi-badges">${s.dist?`<span class="hi-badge">${s.dist} km</span>`:''} ${s.pace?`<span class="hi-badge">${pm}:${ps.toString().padStart(2,'0')}/km</span>`:''} ${s.feeling>=0?`<span class="hi-badge">${feels[s.feeling]}</span>`:''}${delBtn}</div></div>`;}
     const vol=calcVol(s.exercises);const hasPR=s.prs&&s.prs.length>0;
-    return`<div class="hi-item"><div><div class="hi-day" style="color:${cols[s.dayIndex]||'var(--accent)'}">${s.dayName}</div><div class="hi-date">${dateStr}</div></div><div class="hi-badges">${hasPR?'<span class="hi-badge pr">✨ PR</span>':''}${vol>0?`<span class="hi-badge">${Math.round(vol)} kg</span>`:''}<span class="hi-badge">${s.exercises?s.exercises.length:0} oef.</span></div></div>`;
+    return`<div class="hi-item"><div><div class="hi-day" style="color:${cols[s.dayIndex]||'var(--accent)'}">${s.dayName}</div><div class="hi-date">${dateStr}</div></div><div class="hi-badges">${hasPR?'<span class="hi-badge pr">✨ PR</span>':''}${vol>0?`<span class="hi-badge">${Math.round(vol)} kg</span>`:''}<span class="hi-badge">${s.exercises?s.exercises.length:0} oef.</span>${delBtn}</div></div>`;
   }).join('');
 }
+function deleteSession(i,isRun){if(confirm('Sessie verwijderen?')){if(isRun)runHistory.splice(i,1);else history.splice(i,1);persist();renderHistory();}}
 
 // ============================================================
 // MIJLPALEN & VIERING
