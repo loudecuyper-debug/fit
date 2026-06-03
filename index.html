@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
 .header-top{display:flex;align-items:center;justify-content:space-between}
 .header h1{font-size:26px;font-weight:700;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .header-sub{font-size:12px;color:var(--text3);margin-top:3px}
-.streak-pill{display:flex;align-items:center;gap:5px;background:var(--accent-dim);border:1px solid rgba(232,121,249,0.2);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--accent)}
+.streak-pill{display:flex;align-items:center;gap:5px;background:var(--accent-dim);border:1px solid rgba(232,121,249,0.2);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer}
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(15,10,20,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;transition:color .15s}
 .nav-item.active{color:var(--accent)}
@@ -97,6 +97,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
 .toast.green{background:var(--green);color:#0a0a0a}
 .toast.pr{background:linear-gradient(135deg,var(--accent),var(--pink));color:white}
 
+/* MIJLPAAL MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-ov.hidden{display:none}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:310px;width:90%;text-align:center}
+.modal-emoji{font-size:48px;margin-bottom:12px}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.modal-sub{font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:20px}
+.modal-close{padding:12px 24px;background:linear-gradient(135deg,var(--accent),var(--pink));color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;width:100%}
+
 /* GEWICHT TRACKER */
 .weight-input-row{display:flex;gap:10px;margin-bottom:14px;align-items:flex-end}
 .weight-input-wrap{flex:1}
@@ -173,7 +182,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
       <h1>Fit ✨</h1>
       <div class="header-sub">Vetverbranding · 5x/week · Full body</div>
     </div>
-    <div class="streak-pill">
+    <div class="streak-pill" onclick="showStreakModal()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       <span id="streak-val">0</span>&nbsp;weken
     </div>
@@ -202,6 +211,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- MIJLPAAL MODAL -->
+<div class="modal-ov hidden" id="streak-modal">
+  <div class="modal-box">
+    <div class="modal-emoji" id="modal-emoji">🎉</div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <button class="modal-close" onclick="closeModal()">Sluiten</button>
+  </div>
+</div>
 
 <!-- PLAN TAB -->
 <div id="tab-plan" class="tab active">
@@ -248,7 +267,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
       <div class="weight-input-row">
         <div class="weight-input-wrap">
           <label>Gewicht vandaag (kg)</label>
-          <input class="weight-inp" type="number" inputmode="decimal" step="0.1" placeholder="70.0" id="weight-inp" min="30" max="200">
+          <input class="weight-inp" type="text" inputmode="decimal" placeholder="70.0" id="weight-inp" min="30" max="200">
         </div>
         <button class="btn-log-weight" onclick="logWeight()">Log ✓</button>
       </div>
@@ -358,11 +377,11 @@ const WORKOUTS=[
   {id:'B',name:'Full Body B',tag:'Workout B',tc:'tag-b',dur:'~30 min',note:'Circuit stijl — buik en benen focus. Beweeg snel, focus op techniek.',
    exercises:[{n:'Reverse Lunge',s:3,reps:'10/been',kg:4.5,rest:45},{n:'DB Overhead Press',s:3,reps:'12',kg:3.25,rest:45},{n:'Hip Thrust',s:3,reps:'15',kg:7,rest:45},{n:'DB Lateral Raise',s:3,reps:'15',kg:2,rest:30},{n:'Dead Bug',s:3,reps:'10',kg:0,rest:30},{n:'DB Tricep Kickback',s:3,reps:'12',kg:2,rest:30},{n:'Calf Raise',s:3,reps:'20',kg:0,rest:30}]},
   {id:'C',name:'Full Body C',tag:'Workout C',tc:'tag-c',dur:'~30 min',note:'Zwaarste dag qua benen. Focus op billen en core. Houd rug recht.',
-   exercises:[{n:'Goblet Squat',s:3,reps:'15',kg:7,rest:45},{n:'DB Renegade Row',s:3,reps:'8/kant',kg:3.25,rest:45},{n:'Bulgaarse Split Squat',s:3,reps:'10/been',kg:2,rest:60},{n:'DB Chest Flye',s:3,reps:'12',kg:3.25,rest:45},{n:'Russian Twist',s:3,reps:'20',kg:2,rest:30},{n:'DB Hammer Curl',s:3,reps:'12',kg:3.25,rest:30},{n:'Mountain Climbers',s:3,reps:'30s',kg:0,rest:30}]}
+   exercises:[{n:'Goblet Squat',s:3,reps:'15',kg:7,rest:45},{n:'Superman',s:3,reps:'12',kg:0,rest:30},{n:'Bulgaarse Split Squat',s:3,reps:'10/been',kg:2,rest:60},{n:'DB Chest Flye',s:3,reps:'12',kg:3.25,rest:45},{n:'Russian Twist',s:3,reps:'20',kg:2,rest:30},{n:'DB Hammer Curl',s:3,reps:'12',kg:3.25,rest:30},{n:'Bicycle Crunch',s:3,reps:'30s',kg:0,rest:30}]}
 ];
 const RUN_SESSIONS=[
   {id:'easy',name:'Easy Run',desc:'20-30 min rustig lopen · tempo 6:30-7:00 min/km\nGewoon lopen, geen stress over snelheid. Vetverbranding staat aan.'},
-  {id:'intervals',name:'Intervallen',desc:'30-40 min totaal\n• 5 min warm-up wandelen\n• 8x (1 min lopen + 1 min wandelen)\n• 5 min afkoelen\nAls dit makkelijk wordt: 2 min lopen + 1 min wandelen'}
+  {id:'easy2',name:'Easy Run 2',desc:'25-35 min rustig lopen · zelfde tempo als Run 1\nLekker uitlopen — geen stress over snelheid. Bouw de afstand rustig op als het goed gaat.'}
 ];
 const WEEK_SCHEMA=[
   {day:'Ma',type:'workout',name:'Full Body A',color:'var(--accent)'},
@@ -370,7 +389,7 @@ const WEEK_SCHEMA=[
   {day:'Wo',type:'workout',name:'Full Body B',color:'var(--pink)'},
   {day:'Do',type:'rust',name:'Rust',color:'var(--text3)'},
   {day:'Vr',type:'workout',name:'Full Body C',color:'var(--purple)'},
-  {day:'Za',type:'run',name:'Intervallen 30-40 min',color:'var(--blue)'},
+  {day:'Za',type:'run',name:'Easy Run 2 25-35 min',color:'var(--blue)'},
   {day:'Zo',type:'rust',name:'Rust',color:'var(--text3)'}
 ];
 
@@ -388,13 +407,21 @@ const TIMER_MSGS = [
   'Focus. Volgende set is de laatste. Dan mag je stoppen of doorgaan.',
 ];
 
+const MILESTONES=[
+  {weeks:2,emoji:'⚡',title:'2 weken op rij!',msg:'Twee weken volgehouden. Zo bouw je een gewoonte. ✨'},
+  {weeks:4,emoji:'🔥',title:'4 weken streak!',msg:'Een volle maand consistent. Hier begint het verschil.'},
+  {weeks:8,emoji:'💪',title:'8 weken non-stop',msg:'Twee maanden. Dit is geen toeval meer — dit ben jij nu.'},
+  {weeks:12,emoji:'🏆',title:'12 weken streak!',msg:'Drie maanden volgehouden. Echt knap. Voel je het al?'},
+  {weeks:26,emoji:'🌟',title:'Een half jaar!',msg:'26 weken op rij. Petje af — top niveau. 👑'}
+];
+
 // ============================================================
 // STATE
 // ============================================================
 const GOAL_KG=60, START_KG=70;
 let curDay=0,logData={},history=[],runHistory=[],weightLog=[];
 let strChart=null,weightChart=null;
-let timerIv=null,timerTotal=45,timerLeft=45,timerMsgIdx=0;
+let timerIv=null,timerTotal=45,timerLeft=45,timerMsgIdx=0,timerEndTime=null;
 
 function load(){
   try{history=JSON.parse(localStorage.getItem('gf2_h')||'[]')}catch(e){history=[]}
@@ -413,35 +440,17 @@ load();
 // ============================================================
 // STREAK (per week)
 // ============================================================
+const WEEK_TARGET=3; // sessies (kracht + lopen) per week om de week mee te tellen
+function weekStart(d){const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime();}
 function calcWeekStreak(){
-  if(!history.length)return 0;
-  // Get all ISO week keys with at least 3 sessions
-  const weekSessions={};
-  history.forEach(h=>{
-    const d=new Date(h.date);
-    const wk=getWeekKey(d);
-    weekSessions[wk]=(weekSessions[wk]||0)+1;
-  });
-  const weeks=Object.keys(weekSessions).sort().reverse();
+  const all=[...history,...runHistory];
+  if(!all.length)return 0;
+  const c={};all.forEach(h=>{const k=weekStart(h.date);c[k]=(c[k]||0)+1;});
+  const d=new Date();let probe=weekStart(d);
+  if((c[probe]||0)<WEEK_TARGET){d.setDate(d.getDate()-7);probe=weekStart(d);}
   let streak=0;
-  const now=new Date();
-  let checkWk=getWeekKey(now);
-  for(const wk of weeks){
-    if(wk!==checkWk)break;
-    if(weekSessions[wk]>=3)streak++;
-    else break;
-    // go to previous week
-    const [y,w]=wk.split('-W').map(Number);
-    const prev=new Date(now);prev.setDate(prev.getDate()-7*streak);
-    checkWk=getWeekKey(prev);
-  }
+  while((c[probe]||0)>=WEEK_TARGET){streak++;d.setDate(d.getDate()-7);probe=weekStart(d);}
   return streak;
-}
-function getWeekKey(d){
-  const date=new Date(d);date.setHours(0,0,0,0);
-  date.setDate(date.getDate()+3-(date.getDay()+6)%7);
-  const wk1=new Date(date.getFullYear(),0,4);
-  return date.getFullYear()+'-W'+String(1+Math.round(((date-wk1)/86400000-3+(wk1.getDay()+6)%7)/7)).padStart(2,'0');
 }
 
 // ============================================================
@@ -467,7 +476,7 @@ function showPlanSec(s,btn){document.querySelectorAll('.plan-tab-btn').forEach(b
 // LOG
 // ============================================================
 function renderPills(){
-  const pills=[{l:'W-A',n:'Full A',run:false,idx:0},{l:'W-B',n:'Full B',run:false,idx:1},{l:'W-C',n:'Full C',run:false,idx:2},{l:'R1',n:'Easy',run:true,idx:3},{l:'R2',n:'Interval',run:true,idx:4}];
+  const pills=[{l:'W-A',n:'Full A',run:false,idx:0},{l:'W-B',n:'Full B',run:false,idx:1},{l:'W-C',n:'Full C',run:false,idx:2},{l:'R1',n:'Easy',run:true,idx:3},{l:'R2',n:'Run 2',run:true,idx:4}];
   document.getElementById('log-pills').innerHTML=pills.map(p=>`<div class="day-pill ${p.run?'run-pill':''} ${curDay===p.idx?'active':''}" onclick="selDay(${p.idx})"><div class="dp-label">${p.l}</div><div class="dp-name">${p.n}</div></div>`).join('');
   const btn=document.getElementById('save-btn');
   if(curDay>=3){btn.className='btn-save run-save';btn.textContent='Run opslaan ✓';}
@@ -487,12 +496,13 @@ function renderForm(){
     const savedEx=saved.find(e=>e.n===ex.n)||null;
     const lk=lastKg(ex.n);const mk=maxKg(ex.n);
     const hint=ex.kg===0?'Bodyweight':lk!==null?`Vorig: ${lk} kg`:`Start: ${ex.kg} kg`;
+    const isTimed=ex.reps.includes('s');const holdSec=isTimed?parseInt(ex.reps.replace('s','').split('-').pop())||30:0;
     const block=document.createElement('div');block.className='log-ex-block';
-    block.innerHTML=`<div class="log-ex-hdr"><span class="log-ex-name">${ex.n}</span><span class="log-ex-hint">${mk>0?`PR: ${mk}kg · `:''} ${hint}</span></div><div class="sets-hdr"><span>#</span><span>Reps</span><span>Kg</span><span>⏱</span><span></span></div>`;
+    block.innerHTML=`<div class="log-ex-hdr"><span class="log-ex-name">${ex.n}</span><span class="log-ex-hint">${mk>0?`PR: ${mk}kg · `:''}${isTimed?`${holdSec}s houden`:hint}</span>${isTimed?`<button class="timer-btn" onclick="startTimer(${holdSec},'${ex.n.replace(/'/g,'')} hold')" title="Hold-timer">▶</button>`:''}</div><div class="sets-hdr"><span>#</span><span>${isTimed?'Sec.':'Reps'}</span><span>Kg</span><span>⏱</span><span></span></div>`;
     for(let s=0;s<ex.s;s++){
-      const sv=savedEx&&savedEx.sets[s]?savedEx.sets[s]:{reps:'',kg:ex.kg>0?(lk!==null?lk:ex.kg):'',done:false};
+      const sv=savedEx&&savedEx.sets[s]?savedEx.sets[s]:{reps:isTimed?String(holdSec):'',kg:ex.kg>0?(lk!==null?lk:ex.kg):'',done:false};
       const row=document.createElement('div');row.className='set-row'+(sv.done?' done-row':'');row.id=`sr-${curDay}-${ei}-${s}`;
-      row.innerHTML=`<span class="set-num">${s+1}</span><input class="set-inp" type="number" inputmode="decimal" min="0" max="99" placeholder="-" value="${sv.reps}" oninput="updSet(${ei},${s},this,'reps')"><input class="set-inp" type="number" inputmode="decimal" min="0" max="999" step="0.25" placeholder="-" value="${sv.kg}" oninput="updSet(${ei},${s},this,'kg')"><button class="timer-btn" onclick="startTimer(${ex.rest},'${ex.n.replace(/'/g,'')}')">⏱</button><button class="check-btn ${sv.done?'done':''}" onclick="togCheck(${ei},${s},this)" aria-label="afvinken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>`;
+      row.innerHTML=`<span class="set-num">${s+1}</span><input class="set-inp" type="number" inputmode="decimal" min="0" max="99" placeholder="-" value="${sv.reps}" oninput="updSet(${ei},${s},this,'reps')"><input class="set-inp" type="text" inputmode="decimal" placeholder="-" value="${sv.kg}" oninput="updSet(${ei},${s},this,'kg')"><button class="timer-btn" onclick="startTimer(${ex.rest},'${ex.n.replace(/'/g,'')}')">⏱</button><button class="check-btn ${sv.done?'done':''}" onclick="togCheck(${ei},${s},this)" aria-label="afvinken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>`;
       block.appendChild(row);
     }
     form.appendChild(block);
@@ -501,14 +511,14 @@ function renderForm(){
 
 function renderRunForm(form){
   const runIdx=curDay-3;const r=RUN_SESSIONS[runIdx];const saved=logData[curDay]||{};
-  form.innerHTML=`<div class="run-log-block"><div class="run-log-title">🏃‍♀️ ${r.name}</div><div class="run-log-desc">${r.desc.split('\n')[0]}</div><div class="run-log-row"><div class="run-log-field"><label>Afstand (km)</label><input class="run-log-inp" type="number" inputmode="decimal" step="0.1" placeholder="0.0" id="run-dist" value="${saved.dist||''}" oninput="updRun('dist',this.value)"></div><div class="run-log-field"><label>Tijd (min)</label><input class="run-log-inp" type="number" inputmode="decimal" step="1" placeholder="0" id="run-time" value="${saved.time||''}" oninput="updRun('time',this.value)"></div><div class="run-log-field"><label>Tempo</label><div id="pace-disp" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;color:var(--blue);text-align:center;font-weight:700">-</div></div></div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:8px">Gevoel</div><div class="run-feeling">${['😵','😓','😐','😊','🔥'].map((e,i)=>`<button class="feel-btn ${saved.feeling===i?'sel':''}" onclick="selFeel(${i},this)">${e}</button>`).join('')}</div><textarea class="run-notes-inp" placeholder="Notities..." id="run-notes" oninput="updRun('notes',this.value)">${saved.notes||''}</textarea></div>`;
+  form.innerHTML=`<div class="run-log-block"><div class="run-log-title">🏃‍♀️ ${r.name}</div><div class="run-log-desc">${r.desc.split('\n')[0]}</div><div class="run-log-row"><div class="run-log-field"><label>Afstand (km)</label><input class="run-log-inp" type="text" inputmode="decimal" placeholder="0.0" id="run-dist" value="${saved.dist||''}" oninput="updRun('dist',this.value)"></div><div class="run-log-field"><label>Tijd (min)</label><input class="run-log-inp" type="text" inputmode="decimal" placeholder="0" id="run-time" value="${saved.time||''}" oninput="updRun('time',this.value)"></div><div class="run-log-field"><label>Tempo</label><div id="pace-disp" style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;color:var(--blue);text-align:center;font-weight:700">-</div></div></div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:8px">Gevoel</div><div class="run-feeling">${['😵','😓','😐','😊','🔥'].map((e,i)=>`<button class="feel-btn ${saved.feeling===i?'sel':''}" onclick="selFeel(${i},this)">${e}</button>`).join('')}</div><textarea class="run-notes-inp" placeholder="Notities..." id="run-notes" oninput="updRun('notes',this.value)">${saved.notes||''}</textarea></div>`;
   updPace();
 }
 
-function updRun(f,v){if(!logData[curDay])logData[curDay]={};logData[curDay][f]=v;persist();if(f==='dist'||f==='time')updPace();}
-function updPace(){const d=parseFloat(document.getElementById('run-dist')&&document.getElementById('run-dist').value)||0;const t=parseFloat(document.getElementById('run-time')&&document.getElementById('run-time').value)||0;const el=document.getElementById('pace-disp');if(el&&d>0&&t>0){const p=t/d;el.textContent=`${Math.floor(p)}:${Math.round((p-Math.floor(p))*60).toString().padStart(2,'0')}`;}else if(el)el.textContent='-';}
+function updRun(f,v){v=String(v).replace(',','.');if(!logData[curDay])logData[curDay]={};logData[curDay][f]=v;persist();if(f==='dist'||f==='time')updPace();}
+function updPace(){const d=parseFloat((document.getElementById('run-dist')?.value||'').replace(',','.'))||0;const t=parseFloat((document.getElementById('run-time')?.value||'').replace(',','.'))||0;const el=document.getElementById('pace-disp');if(el&&d>0&&t>0){const p=t/d;el.textContent=`${Math.floor(p)}:${Math.round((p-Math.floor(p))*60).toString().padStart(2,'0')}`;}else if(el)el.textContent='-';}
 function selFeel(i,btn){document.querySelectorAll('.feel-btn').forEach((b,j)=>b.classList.toggle('sel',j===i));if(!logData[curDay])logData[curDay]={};logData[curDay].feeling=i;persist();}
-function updSet(ei,si,inp,f){const e=ensureEntry(ei);e.sets[si][f]=inp.value;persist();}
+function updSet(ei,si,inp,f){const e=ensureEntry(ei);let v=inp.value;if(f==='kg'){v=v.replace(',','.');inp.value=v;}e.sets[si][f]=v;persist();}
 function togCheck(ei,si,btn){const e=ensureEntry(ei);e.sets[si].done=!e.sets[si].done;btn.classList.toggle('done',e.sets[si].done);const row=document.getElementById(`sr-${curDay}-${ei}-${si}`);if(row)row.classList.toggle('done-row',e.sets[si].done);persist();if(e.sets[si].done)startTimer(WORKOUTS[curDay].exercises[ei].rest,WORKOUTS[curDay].exercises[ei].n);}
 
 function saveSession(){
@@ -519,40 +529,41 @@ function saveSession(){
   persist();
   if(newPRs.length)showToast('✨ PR! '+newPRs.join(', '),'pr',3500);else showToast('✓ Workout opgeslagen!','green');
   document.getElementById('streak-val').textContent=calcWeekStreak();
+  checkMilestone();
 }
-function saveRun(){const data=logData[curDay]||{};const runIdx=curDay-3;const dist=parseFloat(data.dist)||0;const time=parseFloat(data.time)||0;const pace=dist>0&&time>0?time/dist:0;runHistory.push({date:new Date().toISOString(),type:RUN_SESSIONS[runIdx].id,typeName:RUN_SESSIONS[runIdx].name,dist,time,pace:Math.round(pace*100)/100,feeling:data.feeling!=null?data.feeling:-1,notes:data.notes||''});persist();showToast('🏃‍♀️ Run opgeslagen!','green');}
-function clearLog(){if(confirm('Wis huidige invoer?')){logData[curDay]={};persist();renderForm();}}
+function saveRun(){const data=logData[curDay]||{};const runIdx=curDay-3;const dist=parseFloat(data.dist)||0;const time=parseFloat(data.time)||0;const pace=dist>0&&time>0?time/dist:0;runHistory.push({date:new Date().toISOString(),type:RUN_SESSIONS[runIdx].id,typeName:RUN_SESSIONS[runIdx].name,dist,time,pace:Math.round(pace*100)/100,feeling:data.feeling!=null?data.feeling:-1,notes:data.notes||''});persist();showToast('🏃‍♀️ Run opgeslagen!','green');document.getElementById('streak-val').textContent=calcWeekStreak();checkMilestone();}
+function clearLog(){if(curDay>=3){if(confirm('Run-invoer wissen?')){delete logData[curDay];persist();renderForm();}return;}if(confirm('Reps en vinkjes wissen? Gewicht blijft op de vorige sessie staan.')){delete logData[curDay];persist();renderForm();}}
 
 // ============================================================
 // TIMER met aanmoedigende berichtjes
 // ============================================================
 function startTimer(secs,name){
   if(timerIv){clearInterval(timerIv);timerIv=null;}
-  timerTotal=secs;timerLeft=secs;
+  timerTotal=secs;timerLeft=secs;timerEndTime=Date.now()+secs*1000;
   timerMsgIdx=Math.floor(Math.random()*TIMER_MSGS.length);
   document.getElementById('timer-msg').textContent=TIMER_MSGS[timerMsgIdx];
   document.getElementById('timer-sub').textContent='Na: '+name;
   document.getElementById('timer-ov').classList.remove('hidden');
   updTimer();
   timerIv=setInterval(()=>{
-    timerLeft--;updTimer();
-    // wissel bericht halverwege
-    if(timerLeft===Math.floor(timerTotal/2)){
+    const newLeft=Math.max(0,Math.round((timerEndTime-Date.now())/1000));
+    if(newLeft<=Math.floor(timerTotal/2)&&timerLeft>Math.floor(timerTotal/2)){
       timerMsgIdx=(timerMsgIdx+1)%TIMER_MSGS.length;
       document.getElementById('timer-msg').textContent=TIMER_MSGS[timerMsgIdx];
     }
-    if(timerLeft<=0){clearInterval(timerIv);timerIv=null;if(navigator.vibrate)navigator.vibrate([200,100,200]);document.getElementById('timer-ov').classList.add('hidden');showToast('✓ Rust voorbij!','green');}
-  },1000);
+    timerLeft=newLeft;updTimer();
+    if(timerLeft<=0){clearInterval(timerIv);timerIv=null;timerEndTime=null;if(navigator.vibrate)navigator.vibrate([200,100,200]);document.getElementById('timer-ov').classList.add('hidden');showToast('✓ Rust voorbij!','green');}
+  },500);
 }
 function updTimer(){document.getElementById('timer-secs').textContent=timerLeft;const pct=timerLeft/timerTotal;document.getElementById('tc-fg').style.strokeDashoffset=490*(1-pct);document.getElementById('tc-fg').style.stroke=pct>0.5?'#e879f9':pct>0.25?'#fbbf24':'#f87171';}
-function timerAdd(){timerLeft=Math.min(timerLeft+15,timerTotal+30);timerTotal=Math.max(timerTotal,timerLeft);updTimer();}
-function timerClose(){if(timerIv){clearInterval(timerIv);timerIv=null;}document.getElementById('timer-ov').classList.add('hidden');}
+function timerAdd(){timerLeft=Math.min(timerLeft+15,timerTotal+30);timerTotal=Math.max(timerTotal,timerLeft);timerEndTime=Date.now()+timerLeft*1000;updTimer();}
+function timerClose(){if(timerIv){clearInterval(timerIv);timerIv=null;}timerEndTime=null;document.getElementById('timer-ov').classList.add('hidden');}
 
 // ============================================================
 // GEWICHT TRACKER
 // ============================================================
 function logWeight(){
-  const val=parseFloat(document.getElementById('weight-inp').value);
+  const val=parseFloat(document.getElementById('weight-inp').value.replace(',','.'));
   if(!val||val<30||val>200){showToast('Vul een geldig gewicht in','green');return;}
   weightLog.push({date:new Date().toISOString(),kg:val});
   persist();
@@ -664,6 +675,41 @@ function renderHistory(){
 }
 
 // ============================================================
+// MIJLPALEN & VIERING
+// ============================================================
+function setModal(e,t,m){document.getElementById('modal-emoji').textContent=e;document.getElementById('modal-title').textContent=t;document.getElementById('modal-sub').textContent=m;}
+function closeModal(){document.getElementById('streak-modal').classList.add('hidden');}
+function showStreakModal(){
+  const s=calcWeekStreak();
+  let e='⚡',t=`${s} weken streak`,m='';
+  if(s===0){e='💤';t='Nog geen streak';m=`Train ${WEEK_TARGET}+ keer in een week om je streak te starten. Krachttraining én runs tellen mee.`;}
+  else if(s<2)m=`${s} week gehaald. Goed begonnen — bouw verder! ✨`;
+  else if(s<4){e='🔥';m='Een paar weken consistent. De gewoonte zet zich.';}
+  else if(s<12){e='💪';m='Een maand of meer op rij. Echt sterk bezig!';}
+  else{e='🏆';m=`${s} weken op rij. Wauw. Petje af. 👑`;}
+  setModal(e,t,m);document.getElementById('streak-modal').classList.remove('hidden');
+}
+function checkMilestone(){
+  const streak=calcWeekStreak();
+  const prev=parseInt(localStorage.getItem('gf2_ls')||'0',10);
+  if(streak>prev){
+    const mi=MILESTONES.find(m=>m.weeks===streak);
+    if(mi)setTimeout(()=>{setModal(mi.emoji,mi.title,mi.msg);document.getElementById('streak-modal').classList.remove('hidden');celebrate();},900);
+  }
+  localStorage.setItem('gf2_ls',String(streak));
+}
+function celebrate(){
+  if(navigator.vibrate)navigator.vibrate([60,40,60,40,120]);
+  const cv=document.createElement('canvas');
+  cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:700';
+  document.body.appendChild(cv);
+  const ctx=cv.getContext('2d');const W=cv.width=window.innerWidth,H=cv.height=window.innerHeight;
+  const colors=['#e879f9','#f472b6','#c084fc','#fbbf24','#34d399'];
+  const parts=[];for(let i=0;i<130;i++)parts.push({x:W/2+(Math.random()-.5)*80,y:H*.34,vx:(Math.random()-.5)*9,vy:Math.random()*-11-4,g:.28+Math.random()*.12,r:Math.random()*6+3,c:colors[i%colors.length],rot:Math.random()*6,vr:(Math.random()-.5)*.3,a:1});
+  let t=0;(function frame(){t++;ctx.clearRect(0,0,W,H);parts.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;if(t>55)p.a-=.02;ctx.save();ctx.globalAlpha=Math.max(0,p.a);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.7);ctx.restore();});if(t<120)requestAnimationFrame(frame);else cv.remove();})();
+}
+
+// ============================================================
 // TOAST & NAV
 // ============================================================
 function showToast(msg,type='green',dur=2200){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type}`;t.style.display='block';setTimeout(()=>t.style.display='none',dur);}
@@ -677,6 +723,7 @@ renderPills();renderForm();
 document.getElementById('log-date').textContent=new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'});
 document.getElementById('streak-val').textContent=calcWeekStreak();
 const cs=document.createElement('script');cs.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';document.head.appendChild(cs);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&timerIv&&timerEndTime){timerLeft=Math.max(0,Math.round((timerEndTime-Date.now())/1000));updTimer();if(timerLeft<=0){clearInterval(timerIv);timerIv=null;timerEndTime=null;if(navigator.vibrate)navigator.vibrate([200,100,200]);document.getElementById('timer-ov').classList.add('hidden');showToast('✓ Rust voorbij!','green');}}});
 </script>
 </body>
 </html>
